@@ -7,6 +7,9 @@
 #include<fcntl.h>  
 #include<termios.h>  
 #include<errno.h>  
+#include<stdlib.h>
+#include<string.h>
+
   
 #define FALSE -1  
 #define TRUE 0  
