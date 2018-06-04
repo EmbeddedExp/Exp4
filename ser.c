@@ -16,6 +16,8 @@
   
 int speed_arr[] = { B38400, B19200, B9600, B4800, B2400, B1200, B300,B38400, B19200, B9600, B4800, B2400, B1200, B300, };  
 int name_arr[] = {38400,  19200,  9600,  4800,  2400,  1200,  300, 38400, 19200,  9600, 4800, 2400, 1200,  300, };  
+    int next[4];
+
 void set_speed(int fd, int speed){  
   int   i;   
   int   status;   
@@ -106,92 +108,7 @@ int set_Parity(int fd,int databits,int stopbits,int parity)
         return (FALSE);    
     }   
     return (TRUE);    
-}  
-
-void get_next(char s[], int next[])  
-{  
-    int i, j, len;  
-    i = 0;  
-    j = -1;  
-    len = strlen(s);  
-    next[0] = -1;  
-    while(i < len)  
-    {  
-        if(j == -1 || s[i] == s[j])  
-        {  
-            ++i;  
-            ++j;  
-            next[i] = j;  
-        }  
-        else  
-        {  
-            j = next[j];  
-        }  
-    }  
-}  
-  
-///优化的next数组  
-void get_nextval(char s[], int nextval[])  
-{  
-    int i, j, len;  
-    i = 0;  
-    j = -1;  
-    len = strlen(s);  
-    nextval[0] = -1;  
-    while(i < len)  
-    {  
-        if(j == -1 || s[i] == s[j])  
-        {  
-            ++i;  
-            ++j;  
-            if(s[i] != s[j])  
-            {  
-                nextval[i] = j;  
-            }  
-            else  
-            {  
-                nextval[i] = nextval[j];  
-            }  
-        }  
-        else  
-        {  
-            j = nextval[j];  
-        }  
-    }  
-}  
-  
-int kmp(char s[], char t[])  
-{  
-    int i, j, next[255];  
-    int s_len, t_len;  
-    i = 0;  
-    j = 0;  
-    s_len = strlen(s);  
-    t_len = strlen(t);  
-    get_next(t, next);  
-    ///get_nextval(t, next);  
-  
-    while(i < s_len && j < t_len)  /// j 指向最后一个元素的坐标比数组长度小1  
-    {  
-        if(j == -1 || s[i] == t[j])  
-        {  
-            ++i;  
-            ++j;  
-        }  
-        else  
-        {  
-            j = next[j];  
-        }  
-    }  
-    if(j >= t_len)  
-    {  
-        return i - t_len;  
-    }  
-    else  
-    {  
-        return 0;  
-    }  
-}
+} 
 
 int main()  
 {  
@@ -215,7 +132,7 @@ int main()
         printf("Set Parity Error\n");  
         exit (0);  
     }  
-    char buff[512];   
+    char buff[512]="";
     int nread, ct=0;
     int tmp;
     int buf_cnt;
@@ -225,41 +142,36 @@ int main()
     char des[5] = "22222";//标识码
 
     fd_set read_fds;
-    int ser_fd;//ser_fd ??
+    // int ser_fd;//ser_fd ??
     struct timeval timeout;
+
 
     while(1){
         FD_ZERO(&read_fds);
-        FD_SET(ser_fd, &read_fds);
+        FD_SET(fd, &read_fds);
 
-        timeout.tv_sec= 2;
+        timeout.tv_sec= 6;
         timeout.tv_usec = 0;
 
-        stat = select(ser_fd+1, &read_fds, NULL, NULL, &timeout);
+        stat = select(FD_SETSIZE, &read_fds, NULL, NULL, &timeout);
         if (stat > 0) { // there is sth to read
-            if (FD_ISSET(ser_fd, &read_fds)) {
-                tmp = read(ser_fd, buff+buf_idx, 512);
-                buf_cnt = buf_cnt + tmp;
-                buf_idx = buf_idx + tmp;
+            if (FD_ISSET(fd, &read_fds)) {
+                tmp = read(fd, buff, 512);
+                buf_cnt = buf_cnt + tmp;//?? 似乎不需要
+                // buf_idx = buf_idx + tmp;//??  似乎不需要
+                printf("tmp is: %d\n",tmp);
             }
         }else if(stat < 0){ // error
             perror("select error\n");
         }else{ // 超时则视为消息发送结束, 此时处理消息
             printf("timeout\n");
-            printf("%s\n", buff);
-            // if (FD_ISSET(0, &testfds)) {
-            //     ioctl(0,FIONREAD,&nread);
-            //     if (nread == 0){
-            //         printf("keyboard done\n");
-            //         exit(0);
-            //     }
-            //     nread = read(0, buff, nread);
-            //     buff[nread] = 0;
-            //     printf("read %d from keyboard: %s\n", nread, buff );
-            // }
-            // int index, pos;
-            // index = kmp(buff, des);//kmp查找子串位置
-            // printf("%d\n", index);
+            printf("the whole buff is: %s\n", buff);
+
+            //字符串处理
+
+            // 强制清空buff
+            // printf("now reset the buff");
+            // memset(buff, 0, sizeof(buff));
         }
     }
     // while(1)  
