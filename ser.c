@@ -145,7 +145,8 @@ int main()
     // int ser_fd;//ser_fd ??
     struct timeval timeout;
 
-
+    char mbuff[512] = "";
+    int index = 0;
     while(1){
         FD_ZERO(&read_fds);
         FD_SET(fd, &read_fds);
@@ -154,49 +155,51 @@ int main()
         timeout.tv_usec = 0;
 
         stat = select(FD_SETSIZE, &read_fds, NULL, NULL, &timeout);
-        if (stat > 0) { // there is sth to read
+
+
+        if (stat > 0) {
             if (FD_ISSET(fd, &read_fds)) {
                 tmp = read(fd, buff, 512);
-                buf_cnt = buf_cnt + tmp;//?? 似乎不需要
-                // buf_idx = buf_idx + tmp;//??  似乎不需要
+                buf_cnt = buf_cnt + tmp;
                 printf("tmp is: %d\n",tmp);
+                printf("buff: %s\n", buff);
+                mbuff[index] = buff[0];
+                index++;
+                printf("mbuff: %s\n", mbuff);
             }
         }else if(stat < 0){ // error
             perror("select error\n");
-        }else{ // 超时则视为消息发送结束, 此时处理消息
+        }else{ 
             printf("timeout\n");
-            printf("the whole buff is: %s\n", buff);
+            printf("the whole buff is: %s\n", mbuff);
 
-            //字符串处理
-            // char *string1 = "1234567890"; 
-            // char *string2 = "747DC8"; 
-            // int length;
-             char *ptr;
-            ptr = strpbrk(buff, des); 
-            printf("ptr is: %s\n", ptr);
+            int a;
+            char ch;
+            int ct = 0;
+            printf("ptr: ");
+            for (a = 0; a< 512; a++){
 
-            // 强制清空buff
+                if(ct >= 5){
+                    printf("%c", mbuff[a]);
+                }else{
+                    ch = mbuff[a];
+                    if(ch == '2'){
+                    ct++;
+                    }else{
+                        ct = 0;
+                    }
+                }
+            }
+            printf("\n");
+            char *ptr;
             printf("now reset the buff");
             memset(buff, 0, sizeof(buff));
+            memset(mbuff, 0, sizeof(mbuff));
+            index = 0;
+
         }
     }
-    // while(1)  
-    // {  
-    //     if((nread = read(fd, buff, 512))>0)  
-    //     {  
-    //         buff[nread+1] = '\0';
-    //         char c = buff[0];
-    //         if (ct >= 5){
-    //             printf("%c\n",c);  
-    //         }else{
-    //             if(c == '2'){
-    //                 ct++;
-    //             }else{
-    //                 ct = 0;
-    //             }
-    //         }
-    //     }  
-    // }  
+
     close(fd);  
     return 0;  
 }  
