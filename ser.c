@@ -103,7 +103,92 @@ int set_Parity(int fd,int databits,int stopbits,int parity)
     }   
     return (TRUE);    
 }  
+
+void get_next(char s[], int next[])  
+{  
+    int i, j, len;  
+    i = 0;  
+    j = -1;  
+    len = strlen(s);  
+    next[0] = -1;  
+    while(i < len)  
+    {  
+        if(j == -1 || s[i] == s[j])  
+        {  
+            ++i;  
+            ++j;  
+            next[i] = j;  
+        }  
+        else  
+        {  
+            j = next[j];  
+        }  
+    }  
+}  
   
+///优化的next数组  
+void get_nextval(char s[], int nextval[])  
+{  
+    int i, j, len;  
+    i = 0;  
+    j = -1;  
+    len = strlen(s);  
+    nextval[0] = -1;  
+    while(i < len)  
+    {  
+        if(j == -1 || s[i] == s[j])  
+        {  
+            ++i;  
+            ++j;  
+            if(s[i] != s[j])  
+            {  
+                nextval[i] = j;  
+            }  
+            else  
+            {  
+                nextval[i] = nextval[j];  
+            }  
+        }  
+        else  
+        {  
+            j = nextval[j];  
+        }  
+    }  
+}  
+  
+int kmp(char s[], char t[])  
+{  
+    int i, j, next[255];  
+    int s_len, t_len;  
+    i = 0;  
+    j = 0;  
+    s_len = strlen(s);  
+    t_len = strlen(t);  
+    get_next(t, next);  
+    ///get_nextval(t, next);  
+  
+    while(i < s_len && j < t_len)  /// j 指向最后一个元素的坐标比数组长度小1  
+    {  
+        if(j == -1 || s[i] == t[j])  
+        {  
+            ++i;  
+            ++j;  
+        }  
+        else  
+        {  
+            j = next[j];  
+        }  
+    }  
+    if(j >= t_len)  
+    {  
+        return i - t_len;  
+    }  
+    else  
+    {  
+        return 0;  
+    }  
+}
+
 int main()  
 {  
     printf("This program updates last time at %s   %s\n",__TIME__,__DATE__);  
@@ -127,24 +212,48 @@ int main()
         exit (0);  
     }  
     char buff[512];   
-    int nread, ct=0;    
-    while(1)  
-    {  
-        if((nread = read(fd, buff, 512))>0)  
-        {  
-            buff[nread+1] = '\0';
-            char c = buff[0];
-            if (ct >= 5){
-                printf("%c\n",c);  
-            }else{
-                if(c == '2'){
-                    ct++;
-                }else{
-                    ct = 0;
-                }
+    int nread, ct=0;
+
+    char des[5] = "22222"
+
+    while(1){
+        FD_ZERO(&read fds);
+        FD_SET(&ser fd, &read fds);
+        int tv_sec= 2;
+        int tv_usec = 0;
+
+        stat = select(ser_fd+1,, &read_fds);
+        if (stat > 0) { // there is sth to read
+            if (FD_ISSET(ser_fd, &read_fds)) {
+                tmp = read(ser_fd, buf+buf_idx, MSG_LEN);
+                buf_cnt = buf_cnt + tmp;
+                buf_idx = buf_idx + tmp;
             }
-        }  
-    }  
+        }else if(stat < 0){
+            perror("select error\n");
+        }else{
+            int index, pos;
+            index = kmp(buff, des);
+            printf("%d\n", index);
+        }
+    }
+    // while(1)  
+    // {  
+    //     if((nread = read(fd, buff, 512))>0)  
+    //     {  
+    //         buff[nread+1] = '\0';
+    //         char c = buff[0];
+    //         if (ct >= 5){
+    //             printf("%c\n",c);  
+    //         }else{
+    //             if(c == '2'){
+    //                 ct++;
+    //             }else{
+    //                 ct = 0;
+    //             }
+    //         }
+    //     }  
+    // }  
     close(fd);  
     return 0;  
 }  
