@@ -168,10 +168,16 @@ int main()
             printf("the whole buff is: %s\n", buff);
 
             //字符串处理
+            // char *string1 = "1234567890"; 
+            // char *string2 = "747DC8"; 
+            // int length;
+             char *ptr;
+            ptr = strpbrk(buff, des); 
+            printf("ptr is: %s\n", ptr);
 
             // 强制清空buff
-            // printf("now reset the buff");
-            // memset(buff, 0, sizeof(buff));
+            printf("now reset the buff");
+            memset(buff, 0, sizeof(buff));
         }
     }
     // while(1)  
