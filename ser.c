@@ -2,6 +2,7 @@
 #include<stdlib.h>  
 #include<unistd.h>  
 #include<sys/types.h>  
+#include<sys/ioctl.h>  
 #include<sys/stat.h>  
 #include<fcntl.h>  
 #include<termios.h>  
@@ -213,10 +214,15 @@ int main()
     }  
     char buff[512];   
     int nread, ct=0;
+    int tmp;
+    int buf_cnt;
+    int buf_idx;
+    int stat;
 
     char des[5] = "22222";//标识码
 
-    fd_set read_fds, ser_fd;//ser_fd ??
+    fd_set read_fds;
+    int ser_fd;//ser_fd ??
     struct timeval timeout;
 
     while(1){
@@ -226,10 +232,10 @@ int main()
         timeout.tv_sec= 2;
         timeout.tv_usec = 0;
 
-        stat = select(ser_fd+1,, &read_fds, NULL, NULL, &timeout);
+        stat = select(ser_fd+1, &read_fds, NULL, NULL, &timeout);
         if (stat > 0) { // there is sth to read
             if (FD_ISSET(ser_fd, &read_fds)) {
-                tmp = read(ser_fd, buf+buf_idx, MSG_LEN);
+                tmp = read(ser_fd, buff+buf_idx, 512);
                 buf_cnt = buf_cnt + tmp;
                 buf_idx = buf_idx + tmp;
             }
@@ -237,16 +243,16 @@ int main()
             perror("select error\n");
         }else{ // 超时则视为消息发送结束, 此时处理消息
             
-            if (FD_ISSET(0, &testfds)) {
-                ioctl(0,FIONREAD,&nread);
-                if (nread == 0){
-                    printf("keyboard done\n");
-                    exit(0);
-                }
-                nread = read(0, buff, nread);
-                buff[nread] = 0;
-                printf("read %d from keyboard: %s\n", nread, buff );
-            }
+            // if (FD_ISSET(0, &testfds)) {
+            //     ioctl(0,FIONREAD,&nread);
+            //     if (nread == 0){
+            //         printf("keyboard done\n");
+            //         exit(0);
+            //     }
+            //     nread = read(0, buff, nread);
+            //     buff[nread] = 0;
+            //     printf("read %d from keyboard: %s\n", nread, buff );
+            // }
             // int index, pos;
             // index = kmp(buff, des);//kmp查找子串位置
             // printf("%d\n", index);
