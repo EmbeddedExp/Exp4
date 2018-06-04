@@ -227,7 +227,7 @@ int main()
 
     while(1){
         FD_ZERO(&read_fds);
-        FD_SET(&ser_fd, &read_fds);
+        FD_SET(ser_fd, &read_fds);
 
         timeout.tv_sec= 2;
         timeout.tv_usec = 0;
@@ -242,7 +242,8 @@ int main()
         }else if(stat < 0){ // error
             perror("select error\n");
         }else{ // 超时则视为消息发送结束, 此时处理消息
-            
+            printf("timeout\n");
+            printf("%s\n", buff);
             // if (FD_ISSET(0, &testfds)) {
             //     ioctl(0,FIONREAD,&nread);
             //     if (nread == 0){
